@@ -53,9 +53,9 @@ export default function FooterClient({
                     </>}
                   </>
                   : <>
-                    <Link href={pathForAdminPhotos()}>
+                    {/* <Link href={pathForAdminPhotos()}>
                       Admin
-                    </Link>
+                    </Link> */}
                     {SHOW_REPO_LINK &&
                       <RepoLink />}
                   </>}
