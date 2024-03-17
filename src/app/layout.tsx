@@ -25,6 +25,8 @@ const ibmPlexMono = IBM_Plex_Mono({
   variable: "--font-ibm-plex-mono",
 });
 
+const tinybirdDataToken = process.env.NEXT_PUBLIC_TINYBIRD_DATA_TOKEN;
+
 export const metadata: Metadata = {
   title: SITE_TITLE,
   description: SITE_DESCRIPTION,
@@ -86,7 +88,7 @@ export default function RootLayout({
               src="https://unpkg.com/@tinybirdco/flock.js"
               defer
               data-host="https://api.us-east.tinybird.co"
-              data-token="p.eyJ1IjogIjE5MjhhODM2LWIyZWUtNDY5Mi04ODc2LTQ1MGRhMTBkNDdlMyIsICJpZCI6ICI2MzAwY2U5Ny00MDk1LTQ2YzQtODA1Zi0zNjRlNDIzZTk0NzgiLCAiaG9zdCI6ICJ1c19lYXN0In0.VAJeDifY2qJ2dJQGvhCrZDR7OwL4p5BF6RSYas_x2pY"
+              data-token={tinybirdDataToken}
             />
             <main className={clsx("mx-3 mb-3", "lg:mx-6 lg:mb-6")}>
               <Suspense fallback={<NavClient />}>
