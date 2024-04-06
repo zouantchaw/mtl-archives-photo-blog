@@ -38,13 +38,15 @@ export type StorageListResponse = {
 export type StorageType =
   'vercel-blob' |
   'aws-s3' |
-  'cloudflare-r2';
+  'cloudflare-r2' |
+  'filebase-ipfs';
 
 export const labelForStorage = (type: StorageType): string => {
   switch (type) {
   case 'vercel-blob': return 'Vercel Blob';
   case 'cloudflare-r2': return 'Cloudflare R2';
   case 'aws-s3': return 'AWS S3';
+  case 'filebase-ipfs': return 'Filebase IPFS';
   }
 };
 
@@ -171,6 +173,7 @@ export const convertUploadToPhoto = async (
       await awsS3Delete(getFileNameFromStorageUrl(uploadUrl));
       break;
     }
+    
   }
 
   return url;
