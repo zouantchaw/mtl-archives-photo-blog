@@ -68,7 +68,7 @@ export const storageTypeFromUrl = (url: string): StorageType => {
   }
 };
 
-const PREFIX_UPLOAD = 'upload';
+const PREFIX_UPLOAD = 'mtl_archives_image';
 const PREFIX_PHOTO = 'photo';
 
 const REGEX_UPLOAD_PATH = new RegExp(
@@ -215,7 +215,7 @@ const getStorageUrlsForPrefix = async (prefix = '') => {
 };
 
 export const getStorageUploadUrls = () =>
-  getStorageUrlsForPrefix(`${PREFIX_UPLOAD}-`);
+  getStorageUrlsForPrefix(`${PREFIX_UPLOAD}_`);
 
 export const getStoragePhotoUrls = () =>
   getStorageUrlsForPrefix(`${PREFIX_PHOTO}-`);
