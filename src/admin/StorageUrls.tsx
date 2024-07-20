@@ -10,19 +10,23 @@ import { clsx } from 'clsx/lite';
 import { pathForAdminUploadUrl } from '@/site/paths';
 import AddButton from './AddButton';
 import { formatDate } from 'date-fns';
+import { FaCheckCircle } from 'react-icons/fa';
 
 export default function StorageUrls({
   title,
   urls,
+  matchedUrls,
 }: {
   title?: string
   urls: StorageListResponse
+  matchedUrls: string[]
 }) {
   return (
     <AdminGrid {...{ title }} >
       {urls.map(({ url, uploadedAt }) => {
         const addUploadPath = pathForAdminUploadUrl(url);
         const uploadFileName = fileNameForStorageUrl(url);
+        const isMatched = matchedUrls.includes(url);
         return <Fragment key={url}>
           <Link href={addUploadPath}>
             <ImageTiny
@@ -37,12 +41,18 @@ export default function StorageUrls({
           </Link>
           <Link
             href={addUploadPath}
-            className="break-all"
+            className="break-all flex items-center"
             title={uploadedAt
               ? `${url} @ ${formatDate(uploadedAt, 'yyyy-MM-dd HH:mm:ss')}`
               : url}
           >
             {uploadFileName}
+            {isMatched && (
+              <FaCheckCircle
+                className="ml-2 text-green-500"
+                title="Matched with JSON data"
+              />
+            )}
           </Link>
           <div className={clsx(
             'flex flex-nowrap',
