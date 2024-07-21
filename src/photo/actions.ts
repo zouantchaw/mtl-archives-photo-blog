@@ -33,6 +33,7 @@ import {
 import { extractExifDataFromBlobPath } from './server';
 import { TAG_FAVS, isTagFavs } from '@/tag';
 import { convertPhotoToPhotoDbInsert } from '.';
+import { format } from 'date-fns';
 
 export async function createPhotoAction(formData: FormData) {
   const photo = convertFormDataToPhotoDbInsert(formData, true);
@@ -46,6 +47,35 @@ export async function createPhotoAction(formData: FormData) {
   revalidateAllKeysAndPaths();
 
   redirect(PATH_ADMIN_PHOTOS);
+}
+
+export async function autoAddPhotoAction(formData: FormData) {
+  const url = formData.get('url') as string;
+  
+  const { photoFormExif } = await extractExifDataFromBlobPath(url);
+
+  if (!photoFormExif) {
+    throw new Error('Failed to extract EXIF data');
+  }
+
+  const now = new Date();
+  const formattedNow = format(now, "yyyy-MM-dd HH:mm:ss");
+  
+  const photoData = convertFormDataToPhotoDbInsert({
+    ...photoFormExif,
+    takenAt: photoFormExif.takenAt || now.toISOString(),
+    takenAtNaive: photoFormExif.takenAtNaive || formattedNow,
+  }, true);
+
+  const updatedUrl = await convertUploadToPhoto(photoData.url, photoData.id);
+
+  if (updatedUrl) { photoData.url = updatedUrl; }
+
+  await sqlInsertPhoto(photoData);
+
+  revalidateAllKeysAndPaths();
+
+  redirect(pathForPhoto(photoData.id));
 }
 
 export async function updatePhotoAction(formData: FormData) {

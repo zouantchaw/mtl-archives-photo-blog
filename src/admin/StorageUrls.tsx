@@ -4,13 +4,13 @@ import Link from 'next/link';
 import ImageTiny from '@/components/ImageTiny';
 import { StorageListResponse, fileNameForStorageUrl } from '@/services/storage';
 import FormWithConfirm from '@/components/FormWithConfirm';
-import { deleteBlobPhotoAction } from '@/photo/actions';
+import { deleteBlobPhotoAction, autoAddPhotoAction } from '@/photo/actions';
 import DeleteButton from './DeleteButton';
 import { clsx } from 'clsx/lite';
 import { pathForAdminUploadUrl } from '@/site/paths';
 import AddButton from './AddButton';
 import { formatDate } from 'date-fns';
-import { FaCheckCircle } from 'react-icons/fa';
+import { FaCheckCircle, FaMagic } from 'react-icons/fa';
 
 export default function StorageUrls({
   title,
@@ -22,7 +22,7 @@ export default function StorageUrls({
   matchedUrls: string[]
 }) {
   return (
-    <AdminGrid {...{ title }} >
+    <AdminGrid title={title ?? 'Uploads'}>
       {urls.map(({ url, uploadedAt }) => {
         const addUploadPath = pathForAdminUploadUrl(url);
         const uploadFileName = fileNameForStorageUrl(url);
@@ -58,7 +58,24 @@ export default function StorageUrls({
             'flex flex-nowrap',
             'gap-2 sm:gap-3 items-center',
           )}>
-            <AddButton href={addUploadPath} />
+            {isMatched ? (
+              <FormWithConfirm
+                action={autoAddPhotoAction}
+                confirmText="Are you sure you want to auto-add this photo?"
+              >
+                <input type="hidden" name="url" value={url} readOnly />
+                <button
+                  type="submit"
+                  className="button primary flex items-center gap-1"
+                  title="Auto-add matched image"
+                >
+                  <FaMagic className="text-sm" />
+                  <span className="hidden sm:inline">Auto-Add</span>
+                </button>
+              </FormWithConfirm>
+            ) : (
+              <AddButton href={addUploadPath} />
+            )}
             <FormWithConfirm
               action={deleteBlobPhotoAction}
               confirmText="Are you sure you want to delete this upload?"
@@ -78,7 +95,8 @@ export default function StorageUrls({
               <DeleteButton />
             </FormWithConfirm>
           </div>
-        </Fragment>;})}
+        </Fragment>
+      })}
     </AdminGrid>
   );
 }
