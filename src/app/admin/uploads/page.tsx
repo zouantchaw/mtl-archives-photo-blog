@@ -8,6 +8,7 @@ import JsonDropzone from '@/components/JsonDropzone';
 export default function AdminUploadsPage() {
   const [storageUrls, setStorageUrls] = useState([]);
   const [matchedUrls, setMatchedUrls] = useState<string[]>([]);
+  const [matchedMetadata, setMatchedMetadata] = useState<Record<string, any>>({});
 
   useEffect(() => {
     fetch('/api/storage/urls')
@@ -23,6 +24,7 @@ export default function AdminUploadsPage() {
     console.log('Matched URL:', matchedUrl);
     if (matchedUrl) {
       setMatchedUrls(prev => [...prev, matchedUrl]);
+      setMatchedMetadata(prev => ({ ...prev, [matchedUrl]: json }));
     }
   };
 
@@ -34,7 +36,11 @@ export default function AdminUploadsPage() {
             onJsonProcessed={handleJsonProcessed}
             storageUrls={storageUrls}
           />
-          <StorageUrls urls={storageUrls} matchedUrls={matchedUrls} />
+          <StorageUrls
+            urls={storageUrls}
+            matchedUrls={matchedUrls}
+            matchedMetadata={matchedMetadata}
+          />
         </>
       }
     />

@@ -5,7 +5,8 @@ import { PATH_ADMIN_UPLOADS } from '@/site/paths';
 import { PhotoFormData } from './form';
 import { Tags } from '@/tag';
 import PhotoForm from './form/PhotoForm';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 
 export default function UploadPageClient({
   blobId,
@@ -18,6 +19,21 @@ export default function UploadPageClient({
 }) {
   const [pending, setIsPending] = useState(false);
   const [updatedTitle, setUpdatedTitle] = useState('');
+  const [initialPhotoForm, setInitialPhotoForm] = useState(photoFormExif);
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const metadataParam = searchParams.get('metadata');
+    console.log('metadataParam', metadataParam);
+    if (metadataParam) {
+      try {
+        const parsedMetadata = JSON.parse(decodeURIComponent(metadataParam));
+        setInitialPhotoForm({ ...photoFormExif, ...parsedMetadata });
+      } catch (error) {
+        console.error('Error parsing metadata:', error);
+      }
+    }
+  }, [searchParams, photoFormExif]);
 
   return (
     <AdminChildPage
@@ -29,7 +45,7 @@ export default function UploadPageClient({
       isLoading={pending}
     >
       <PhotoForm
-        initialPhotoForm={photoFormExif}
+        initialPhotoForm={initialPhotoForm}
         uniqueTags={uniqueTags}
         onTitleChange={setUpdatedTitle}
         onFormStatusChange={setIsPending}

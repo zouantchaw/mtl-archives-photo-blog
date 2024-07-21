@@ -58,24 +58,10 @@ export async function autoAddPhotoAction(formData: FormData) {
     throw new Error('Failed to extract EXIF data');
   }
 
-  const now = new Date();
-  const formattedNow = format(now, "yyyy-MM-dd HH:mm:ss");
-  
-  const photoData = convertFormDataToPhotoDbInsert({
-    ...photoFormExif,
-    takenAt: photoFormExif.takenAt || now.toISOString(),
-    takenAtNaive: photoFormExif.takenAtNaive || formattedNow,
-  }, true);
+  const metadata = JSON.stringify(photoFormExif);
+  const encodedMetadata = encodeURIComponent(metadata);
 
-  const updatedUrl = await convertUploadToPhoto(photoData.url, photoData.id);
-
-  if (updatedUrl) { photoData.url = updatedUrl; }
-
-  await sqlInsertPhoto(photoData);
-
-  revalidateAllKeysAndPaths();
-
-  redirect(pathForPhoto(photoData.id));
+  redirect(`${PATH_ADMIN_PHOTOS}?metadata=${encodedMetadata}`);
 }
 
 export async function updatePhotoAction(formData: FormData) {

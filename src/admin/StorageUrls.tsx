@@ -4,22 +4,24 @@ import Link from 'next/link';
 import ImageTiny from '@/components/ImageTiny';
 import { StorageListResponse, fileNameForStorageUrl } from '@/services/storage';
 import FormWithConfirm from '@/components/FormWithConfirm';
-import { deleteBlobPhotoAction, autoAddPhotoAction } from '@/photo/actions';
+import { deleteBlobPhotoAction } from '@/photo/actions';
 import DeleteButton from './DeleteButton';
 import { clsx } from 'clsx/lite';
 import { pathForAdminUploadUrl } from '@/site/paths';
 import AddButton from './AddButton';
 import { formatDate } from 'date-fns';
-import { FaCheckCircle, FaMagic } from 'react-icons/fa';
+import { FaCheckCircle } from 'react-icons/fa';
 
 export default function StorageUrls({
   title,
   urls,
   matchedUrls,
+  matchedMetadata,
 }: {
   title?: string
   urls: StorageListResponse
   matchedUrls: string[]
+  matchedMetadata: Record<string, any>
 }) {
   return (
     <AdminGrid title={title ?? 'Uploads'}>
@@ -59,20 +61,10 @@ export default function StorageUrls({
             'gap-2 sm:gap-3 items-center',
           )}>
             {isMatched ? (
-              <FormWithConfirm
-                action={autoAddPhotoAction}
-                confirmText="Are you sure you want to auto-add this photo?"
-              >
-                <input type="hidden" name="url" value={url} readOnly />
-                <button
-                  type="submit"
-                  className="button primary flex items-center gap-1"
-                  title="Auto-add matched image"
-                >
-                  <FaMagic className="text-sm" />
-                  <span className="hidden sm:inline">Auto-Add</span>
-                </button>
-              </FormWithConfirm>
+              <AddButton
+                href={`${addUploadPath}?metadata=${encodeURIComponent(JSON.stringify(matchedMetadata[url]))}`}
+                label="Add"
+              />
             ) : (
               <AddButton href={addUploadPath} />
             )}
