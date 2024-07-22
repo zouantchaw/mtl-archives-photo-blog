@@ -66,6 +66,8 @@ export default async function AdminPhotosPage({
               <StorageUrls
                 title={`Photo Blobs (${blobPhotoUrls.length})`}
                 urls={blobPhotoUrls}
+                matchedUrls={[]}
+                matchedMetadata={{}}
               />
             </div>}
           <div className="space-y-4">
