@@ -55,7 +55,7 @@ export default function JsonDropzone({ onJsonProcessed, storageUrls }: Props) {
       {isDragActive ? (
         <p>Drop the JSON files here ...</p>
       ) : (
-        <p>Drag 'n' drop some JSON files here, or click to select files</p>
+        <p>Drag &apos;n&apos; drop some JSON files here, or click to select files</p>
       )}
       {isProcessing && <p>Processing...</p>}
       {stats.processed > 0 && (
