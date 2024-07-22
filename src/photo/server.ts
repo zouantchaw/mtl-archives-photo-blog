@@ -20,13 +20,19 @@ export const extractExifDataFromBlobPath = async (
   const url = decodeURIComponent(blobPath);
 
   const blobId = getIdFromStorageUrl(url);
-
   const extension = getExtensionFromStorageUrl(url);
 
-  const fileBytes = blobPath
-    ? await fetch(url)
-      .then(res => res.arrayBuffer())
-    : undefined;
+  let fileBytes: ArrayBuffer | undefined;
+  try {
+    const response = await fetch(url, { cache: 'no-store' });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    fileBytes = await response.arrayBuffer();
+  } catch (error) {
+    console.error('Error fetching file:', error);
+    return { blobId };
+  }
 
   let exifData: ExifData | undefined;
   let filmSimulation: FilmSimulation | undefined;
