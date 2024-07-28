@@ -85,10 +85,9 @@ export default function RootLayout({
         <AppStateProvider>
           <ThemeProvider attribute="class">
             <Script
-              src="https://unpkg.com/@tinybirdco/flock.js"
+              src="https://cdn.seline.so/seline.js"
               defer
-              data-host="https://api.us-east.tinybird.co"
-              data-token={tinybirdDataToken}
+              data-token="f8d8e231d48eb4b"
             />
             <main className={clsx("mx-3 mb-3", "lg:mx-6 lg:mb-6")}>
               <Suspense fallback={<NavClient />}>
