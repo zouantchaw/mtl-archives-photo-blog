@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
+import { Loader2, Upload, CheckCircle, XCircle } from 'lucide-react';
 
 interface JsonFile {
   name: string;
@@ -15,13 +16,22 @@ interface Props {
 }
 
 export default function JsonDropzone({ onJsonProcessed, storageUrls }: Props) {
-  const [stats, setStats] = useState({ processed: 0, matched: 0 });
+  const [stats, setStats] = useState({ processed: 0, matched: 0, failed: 0 });
   const [isProcessing, setIsProcessing] = useState(false);
+
+  const findMatchingUrl = (imageUrl: string): string | null => {
+    const ipfsId = imageUrl.split('/').pop()?.split('.')[0] || '';
+    const matchedUrl = storageUrls.find(({ url }) => 
+      url.includes(ipfsId) || imageUrl.includes(url.split('/').pop() || '')
+    )?.url || null;
+    return matchedUrl;
+  };
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     setIsProcessing(true);
     let processed = 0;
     let matched = 0;
+    let failed = 0;
 
     acceptedFiles.forEach((file) => {
       const reader = new FileReader();
@@ -29,17 +39,18 @@ export default function JsonDropzone({ onJsonProcessed, storageUrls }: Props) {
         const text = e.target?.result as string;
         try {
           const json: JsonFile = JSON.parse(text);
-          const ipfsId = json.image.split('/').pop()?.split('.')[0] || '';
-          const matchedUrl = storageUrls.find(({ url }) => url.includes(ipfsId))?.url || null;
+          const matchedUrl = findMatchingUrl(json.image);
           onJsonProcessed(json, matchedUrl);
           processed++;
           if (matchedUrl) matched++;
+          else failed++;
         } catch (error) {
           console.error('Error processing JSON file:', error);
+          failed++;
         }
         
         if (processed === acceptedFiles.length) {
-          setStats({ processed, matched });
+          setStats({ processed, matched, failed });
           setIsProcessing(false);
         }
       };
@@ -47,21 +58,47 @@ export default function JsonDropzone({ onJsonProcessed, storageUrls }: Props) {
     });
   }, [onJsonProcessed, storageUrls]);
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop, accept: { 'application/json': ['.json'] } });
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({ 
+    onDrop, 
+    accept: { 'application/json': ['.json'] },
+    multiple: true
+  });
 
   return (
-    <div {...getRootProps()} className="border-2 border-dashed p-4 text-center cursor-pointer">
-      <input {...getInputProps()} />
-      {isDragActive ? (
-        <p>Drop the JSON files here ...</p>
-      ) : (
-        <p>Drag &apos;n&apos; drop some JSON files here, or click to select files</p>
+    <div className="w-full max-w-md mx-auto">
+      <div 
+        {...getRootProps()} 
+        className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
+          isDragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
+        }`}
+      >
+        <input {...getInputProps()} />
+        <Upload className="mx-auto h-12 w-12 text-gray-400" />
+        {isDragActive ? (
+          <p className="mt-2 text-sm text-gray-600">Drop the JSON files here ...</p>
+        ) : (
+          <p className="mt-2 text-sm text-gray-600">
+            Drag &apos;n&apos; drop some JSON files here, or click to select files
+          </p>
+        )}
+      </div>
+      {isProcessing && (
+        <div className="mt-4 flex items-center justify-center">
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          <p>Processing...</p>
+        </div>
       )}
-      {isProcessing && <p>Processing...</p>}
       {stats.processed > 0 && (
-        <div className="mt-4">
-          <p>Processed: {stats.processed} files</p>
-          <p>Matched: {stats.matched} files</p>
+        <div className="mt-4 space-y-2">
+          <p className="font-semibold">Results:</p>
+          <div className="flex items-center">
+            <CheckCircle className="mr-2 h-4 w-4 text-green-500" />
+            <p>Matched: {stats.matched} files</p>
+          </div>
+          <div className="flex items-center">
+            <XCircle className="mr-2 h-4 w-4 text-red-500" />
+            <p>Failed to match: {stats.failed} files</p>
+          </div>
         </div>
       )}
     </div>

@@ -36,3 +36,6 @@ next-env.d.ts
 
 # temp files
 temp.jpg
+
+# metadata directory
+mtl_archives_photographs_metadata_ex/
