@@ -36,9 +36,7 @@ export default function UploadPageClient({
     console.log("metadataParam", metadataParam);
     if (metadataParam) {
       try {
-        const parsedMetadata: Metadata = JSON.parse(
-          decodeURIComponent(metadataParam)
-        );
+        const parsedMetadata: Metadata = JSON.parse(decodeURIComponent(metadataParam));
         const updatedForm: Partial<PhotoFormData> = {
           ...photoFormExif,
           title: parsedMetadata.name || photoFormExif.title,
