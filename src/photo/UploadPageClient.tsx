@@ -7,6 +7,7 @@ import { Tags } from "@/tag";
 import PhotoForm from "./form/PhotoForm";
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
+import { format, parse, isValid } from "date-fns";
 
 interface Metadata {
   name?: string;
@@ -14,6 +15,17 @@ interface Metadata {
   image?: string;
   external_url?: string;
   attributes?: Array<{ trait_type: string; value: string }>;
+}
+
+function generateRandomDateForYear(year: number): Date {
+  const start = new Date(year, 0, 1);
+  const end = new Date(year, 11, 31);
+  return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+}
+
+function extractYearFromDateString(dateString: string): number | null {
+  const yearMatch = dateString.match(/\b\d{4}\b/);
+  return yearMatch ? parseInt(yearMatch[0], 10) : null;
 }
 
 export default function UploadPageClient({
@@ -50,12 +62,17 @@ export default function UploadPageClient({
           setUpdatedTitle(parsedMetadata.name);
         }
 
-        // Add date if available
+        // Handle date
         const dateAttribute = parsedMetadata.attributes?.find(
           (attr) => attr.trait_type === "Date"
         );
-        if (dateAttribute && "takenAtNaive" in updatedForm) {
-          updatedForm.takenAtNaive = dateAttribute.value.toString();
+        if (dateAttribute) {
+          const year = extractYearFromDateString(dateAttribute.value);
+          if (year) {
+            const randomDate = generateRandomDateForYear(year);
+            updatedForm.takenAt = format(randomDate, "yyyy-MM-dd'T'HH:mm:ssXXX");
+            updatedForm.takenAtNaive = format(randomDate, "yyyy-MM-dd HH:mm:ss");
+          }
         }
 
         // Combine description and credits if available
