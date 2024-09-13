@@ -69,10 +69,11 @@ export default function UploadPageClient({
           setUpdatedTitle(parsedMetadata.name);
         }
 
-        // Handle date
+        // Handle date and add year as tag
         const dateAttribute = parsedMetadata.attributes?.find(
           (attr) => attr.trait_type === "Date"
         );
+        let yearTag: string | null = null;
         if (dateAttribute && dateAttribute.value !== undefined) {
           const year = extractYearFromDateValue(dateAttribute.value);
           if (year) {
@@ -85,6 +86,7 @@ export default function UploadPageClient({
               randomDate,
               "yyyy-MM-dd HH:mm:ss"
             );
+            yearTag = year.toString();
           }
         }
 
@@ -106,12 +108,16 @@ export default function UploadPageClient({
           (updatedForm as any).description = combinedDescription;
         }
 
-        // Add other attributes as tags
+        // Add other attributes as tags, including the year if available
         const tags = parsedMetadata.attributes
           ?.filter((attr) => !["Date", "Credits"].includes(attr.trait_type))
           .map((attr) => `${attr.trait_type}: ${attr.value}`);
 
-        if (tags && tags.length > 0 && "tags" in updatedForm) {
+        if (yearTag) {
+          tags?.push(yearTag);
+        }
+
+        if (tags && tags.length > 0) {
           updatedForm.tags = tags.join(", ");
         }
 
