@@ -45,37 +45,37 @@ export default function PhotoForm({
   onTitleChange?: (updatedTitle: string) => void
   onFormStatusChange?: (pending: boolean) => void
 }) {
-  const [formData, setFormData] =
-    useState<Partial<PhotoFormData>>(initialPhotoForm);
-  const [formErrors, setFormErrors] =
-    useState(getFormErrors(initialPhotoForm));
+  const [formData, setFormData] = useState<Partial<PhotoFormData>>(initialPhotoForm);
+  const [formErrors, setFormErrors] = useState(getFormErrors(initialPhotoForm));
 
-  // Update form when EXIF data
-  // is refreshed by parent
+  // Update form when initialPhotoForm changes
+  useEffect(() => {
+    setFormData(initialPhotoForm);
+    setFormErrors(getFormErrors(initialPhotoForm));
+    if (initialPhotoForm.title) {
+      onTitleChange?.(initialPhotoForm.title);
+    }
+  }, [initialPhotoForm, onTitleChange]);
+
+  // Update form when EXIF data is refreshed by parent
   useEffect(() => {
     if (Object.keys(updatedExifData ?? {}).length > 0) {
       const changedKeys: (keyof PhotoFormData)[] = [];
 
       setFormData(currentForm => {
-        Object.entries(updatedExifData ?? {})
-          .forEach(([key, value]) => {
-            if (currentForm[key as keyof PhotoFormData] !== value) {
-              changedKeys.push(key as keyof PhotoFormData);
-            }
-          });
-
-        return {
-          ...currentForm,
-          ...updatedExifData,
-        };
+        const updatedForm = { ...currentForm };
+        Object.entries(updatedExifData ?? {}).forEach(([key, value]) => {
+          if (currentForm[key as keyof PhotoFormData] !== value) {
+            changedKeys.push(key as keyof PhotoFormData);
+            updatedForm[key as keyof PhotoFormData] = value;
+          }
+        });
+        return updatedForm;
       });
 
       if (changedKeys.length > 0) {
         const fields = convertFormKeysToLabels(changedKeys);
-        toastSuccess(
-          `Updated EXIF fields: ${fields.join(', ')}`,
-          8000,
-        );
+        toastSuccess(`Updated EXIF fields: ${fields.join(', ')}`, 8000);
       } else {
         toastWarning('No new EXIF data found');
       }
@@ -172,7 +172,7 @@ export default function PhotoForm({
             hideIfEmpty,
             hideBasedOnCamera,
             loadingMessage,
-            type,
+            type: fieldType,
           }]) =>
             (
               (!hideIfEmpty || formData[key]) &&
@@ -186,9 +186,9 @@ export default function PhotoForm({
                 error={formErrors[key]}
                 value={formData[key] ?? ''}
                 onChange={value => {
-                  setFormData({ ...formData, [key]: value });
+                  setFormData(prev => ({ ...prev, [key]: value }));
                   if (validate) {
-                    setFormErrors({ ...formErrors, [key]: validate(value) });
+                    setFormErrors(prev => ({ ...prev, [key]: validate(value) }));
                   }
                   if (key === 'title') {
                     onTitleChange?.(value.trim());
@@ -204,7 +204,7 @@ export default function PhotoForm({
                   ? loadingMessage
                   : undefined}
                 loading={loadingMessage && !formData[key] ? true : false}
-                type={type}
+                type={fieldType}
               />)}
         <div className="flex gap-3">
           <Link

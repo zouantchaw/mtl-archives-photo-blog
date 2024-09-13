@@ -42,23 +42,25 @@ export default function UploadPageClient({
 
         const updatedForm: Partial<PhotoFormData> = {
           ...photoFormExif,
-          title: parsedMetadata.name || photoFormExif.title,
         };
+
+        // Set title from metadata
+        if (parsedMetadata.name) {
+          updatedForm.title = parsedMetadata.name;
+          setUpdatedTitle(parsedMetadata.name);
+        }
 
         // Add date if available
         const dateAttribute = parsedMetadata.attributes?.find(
           (attr) => attr.trait_type === "Date"
         );
         if (dateAttribute && "takenAtNaive" in updatedForm) {
-          updatedForm.takenAtNaive = dateAttribute.value;
+          updatedForm.takenAtNaive = dateAttribute.value.toString();
         }
 
         // Combine description and credits if available
         let combinedDescription = "";
-        if (
-          parsedMetadata.description &&
-          parsedMetadata.description !== "S/O"
-        ) {
+        if (parsedMetadata.description) {
           combinedDescription += parsedMetadata.description;
         }
         const creditsAttribute = parsedMetadata.attributes?.find(
@@ -84,7 +86,6 @@ export default function UploadPageClient({
         }
 
         setInitialPhotoForm(updatedForm);
-        setUpdatedTitle(updatedForm.title || "");
       } catch (error) {
         console.error("Error parsing metadata:", error);
       }
