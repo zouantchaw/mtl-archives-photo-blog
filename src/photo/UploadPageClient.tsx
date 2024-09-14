@@ -8,6 +8,7 @@ import PhotoForm from "./form/PhotoForm";
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { format } from "date-fns";
+import { toast } from "sonner";
 
 interface Metadata {
   name?: string;
@@ -44,8 +45,6 @@ export default function UploadPageClient({
   photoFormExif: Partial<PhotoFormData>;
   uniqueTags: Tags;
 }) {
-  const [pending, setIsPending] = useState(false);
-  const [updatedTitle, setUpdatedTitle] = useState("");
   const [initialPhotoForm, setInitialPhotoForm] =
     useState<Partial<PhotoFormData>>(photoFormExif);
   const searchParams = useSearchParams();
@@ -61,13 +60,8 @@ export default function UploadPageClient({
 
         const updatedForm: Partial<PhotoFormData> = {
           ...photoFormExif,
+          title: parsedMetadata.name || "",
         };
-
-        // Set title from metadata
-        if (parsedMetadata.name) {
-          updatedForm.title = parsedMetadata.name;
-          setUpdatedTitle(parsedMetadata.name);
-        }
 
         // Handle date and add year as tag
         const dateAttribute = parsedMetadata.attributes?.find(
@@ -90,56 +84,49 @@ export default function UploadPageClient({
           }
         }
 
-        // Combine description and credits if available
-        let combinedDescription = "";
+        // Combine metadata information into tags
+        const tags: string[] = [];
+
         if (parsedMetadata.description) {
-          combinedDescription += parsedMetadata.description;
+          tags.push(`Description: ${parsedMetadata.description}`);
         }
+
         const creditsAttribute = parsedMetadata.attributes?.find(
           (attr) => attr.trait_type === "Credits"
         );
         if (creditsAttribute) {
-          if (combinedDescription) combinedDescription += "\n\n";
-          combinedDescription += `Credits: ${creditsAttribute.value}`;
-        }
-
-        // Add combined description if the field exists in PhotoFormData
-        if (combinedDescription && "description" in updatedForm) {
-          (updatedForm as any).description = combinedDescription;
+          tags.push(`Credits: ${creditsAttribute.value}`);
         }
 
         // Add other attributes as tags, including the year if available
-        const tags = parsedMetadata.attributes
+        parsedMetadata.attributes
           ?.filter((attr) => !["Date", "Credits"].includes(attr.trait_type))
-          .map((attr) => `${attr.trait_type}: ${attr.value}`);
+          .forEach((attr) => tags.push(`${attr.trait_type}: ${attr.value}`));
 
         if (yearTag) {
-          tags?.push(yearTag);
+          tags.push(yearTag);
         }
 
-        if (tags && tags.length > 0) {
+        if (tags.length > 0) {
           updatedForm.tags = tags.join(", ");
         }
 
         setInitialPhotoForm(updatedForm);
       } catch (error) {
         console.error("Error parsing metadata:", error);
+        toast.error("Failed to parse metadata");
       }
     }
   }, [searchParams, photoFormExif]);
 
   return (
-    <AdminChildPage
-      backPath={PATH_ADMIN_UPLOADS}
-      backLabel="Uploads"
-      breadcrumb={pending && updatedTitle ? updatedTitle : blobId}
-      isLoading={pending}
-    >
+    <AdminChildPage backPath={PATH_ADMIN_UPLOADS} backLabel="Uploads">
       <PhotoForm
-        initialPhotoForm={initialPhotoForm}
-        uniqueTags={uniqueTags}
-        onTitleChange={setUpdatedTitle}
-        onFormStatusChange={setIsPending}
+        {...{
+          blobId,
+          initialPhotoForm,
+          uniqueTags,
+        }}
       />
     </AdminChildPage>
   );

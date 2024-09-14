@@ -2,6 +2,7 @@
 import { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import { Loader2, Upload, CheckCircle, XCircle } from "lucide-react";
+import { toast } from "sonner";
 
 interface JsonFile {
   name: string;
@@ -17,23 +18,33 @@ interface Props {
 }
 
 export default function JsonDropzone({ onJsonProcessed, storageUrls }: Props) {
-  const [stats, setStats] = useState({ processed: 0, matched: 0, failed: 0 });
   const [isProcessing, setIsProcessing] = useState(false);
+  const [stats, setStats] = useState({ processed: 0, matched: 0, failed: 0 });
 
   const findMatchingUrl = (jsonFileName: string): string | null => {
-    // Extract the number from the JSON file name
+    console.log(`\nProcessing JSON file: ${jsonFileName}`);
     const jsonNumber = jsonFileName.match(/\d+/)?.[0];
-    if (!jsonNumber) return null;
+    console.log(`Extracted number: ${jsonNumber}`);
 
-    // Find a matching URL based on the extracted number
-    const matchedUrl =
-      storageUrls.find(({ url }) => {
-        const urlParts = url.split("/");
-        const fileName = urlParts[urlParts.length - 1];
-        return fileName.includes(jsonNumber);
-      })?.url || null;
+    if (!jsonNumber) {
+      console.log("No number found in JSON filename");
+      return null;
+    }
 
-    return matchedUrl;
+    console.log("Attempting to match with storage URLs:");
+    for (const { url } of storageUrls) {
+      const urlParts = url.split("/");
+      const fileName = urlParts[urlParts.length - 1];
+      console.log(`  Checking URL: ${url}`);
+      console.log(`    File name: ${fileName}`);
+      if (fileName.includes(`_${jsonNumber}.`)) {
+        console.log(`    Match found!`);
+        return url;
+      }
+    }
+
+    console.log("No match found for this JSON file");
+    return null;
   };
 
   const onDrop = useCallback(
@@ -43,28 +54,44 @@ export default function JsonDropzone({ onJsonProcessed, storageUrls }: Props) {
       let matched = 0;
       let failed = 0;
 
-      acceptedFiles.forEach((file) => {
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-          const text = e.target?.result as string;
-          try {
-            const json: JsonFile = JSON.parse(text);
-            const matchedUrl = findMatchingUrl(file.name);
-            onJsonProcessed(json, matchedUrl);
-            processed++;
-            if (matchedUrl) matched++;
-            else failed++;
-          } catch (error) {
-            console.error("Error processing JSON file:", error);
-            failed++;
-          }
+      console.log(`\nStarting to process ${acceptedFiles.length} files`);
+      console.log(`Available storage URLs: ${storageUrls.length}`);
 
-          if (processed === acceptedFiles.length) {
-            setStats({ processed, matched, failed });
-            setIsProcessing(false);
-          }
-        };
-        reader.readAsText(file);
+      const processFile = async (file: File) => {
+        const reader = new FileReader();
+        return new Promise<void>((resolve) => {
+          reader.onload = async (e) => {
+            const text = e.target?.result as string;
+            try {
+              const json: JsonFile = JSON.parse(text);
+              const matchedUrl = findMatchingUrl(file.name);
+              console.log(`File ${file.name}:`);
+              console.log(`  Parsed JSON:`, json);
+              console.log(`  Matched URL: ${matchedUrl || "None"}`);
+              onJsonProcessed(json, matchedUrl);
+              processed++;
+              if (matchedUrl) matched++;
+              else failed++;
+            } catch (error) {
+              console.error(`Error processing JSON file ${file.name}:`, error);
+              failed++;
+            }
+            resolve();
+          };
+          reader.readAsText(file);
+        });
+      };
+
+      Promise.all(acceptedFiles.map(processFile)).then(() => {
+        setStats({ processed, matched, failed });
+        setIsProcessing(false);
+        console.log(`\nProcessing complete:`);
+        console.log(`  Processed: ${processed}`);
+        console.log(`  Matched: ${matched}`);
+        console.log(`  Failed: ${failed}`);
+        toast.success(
+          `Processed ${processed} files, ${matched} matched, ${failed} failed`
+        );
       });
     },
     [onJsonProcessed, storageUrls]
@@ -82,18 +109,18 @@ export default function JsonDropzone({ onJsonProcessed, storageUrls }: Props) {
         {...getRootProps()}
         className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
           isDragActive
-            ? "border-blue-500 bg-blue-50"
-            : "border-gray-300 hover:border-gray-400"
+            ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+            : "border-gray-300 hover:border-gray-400 dark:border-gray-700 dark:hover:border-gray-600"
         }`}
       >
         <input {...getInputProps()} />
-        <Upload className="mx-auto h-12 w-12 text-gray-400" />
+        <Upload className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-600" />
         {isDragActive ? (
-          <p className="mt-2 text-sm text-gray-600">
+          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
             Drop the JSON files here ...
           </p>
         ) : (
-          <p className="mt-2 text-sm text-gray-600">
+          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
             Drag &apos;n&apos; drop some JSON files here, or click to select
             files
           </p>
