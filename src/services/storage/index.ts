@@ -32,7 +32,7 @@ export const generateStorageId = () => generateNanoid(16);
 
 export interface StorageUrl {
   url: string;
-  uploadedAt: Date;
+  uploadedAt?: Date; // Make uploadedAt optional
 }
 
 export type StorageListResponse = StorageUrl[];
