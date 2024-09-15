@@ -3,6 +3,7 @@ import { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import { Loader2, Upload, CheckCircle, XCircle } from "lucide-react";
 import { toast } from "sonner";
+import { StorageUrl } from "@/services/storage"; // Import StorageUrl
 
 interface JsonFile {
   name: string;
@@ -13,8 +14,8 @@ interface JsonFile {
 }
 
 interface Props {
-  onJsonProcessed: (jsonData: JsonFile, matchedUrl: string | null) => void;
-  storageUrls: Array<{ url: string; uploadedAt: Date }>;
+  onJsonProcessed: (json: any, matchedUrl: string | null) => void;
+  storageUrls: StorageUrl[]; // Now TypeScript recognizes StorageUrl
 }
 
 export default function JsonDropzone({ onJsonProcessed, storageUrls }: Props) {

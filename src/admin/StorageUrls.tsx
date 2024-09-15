@@ -19,7 +19,7 @@ export default function StorageUrls({
   matchedMetadata,
 }: {
   title?: string;
-  urls: StorageListResponse;
+  urls: StorageListResponse; // Correctly typed
   matchedUrls: string[];
   matchedMetadata: Record<string, any>;
 }) {
@@ -95,3 +95,6 @@ export default function StorageUrls({
     </AdminGrid>
   );
 }
+
+// Ensure StorageListResponse expects uploadedAt as Date
+// If not already defined, update it accordingly
