@@ -20,7 +20,7 @@ export default function AdminUploadsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [sortBy, setSortBy] = useState<'uploadedAt' | 'url'>('uploadedAt');
   const [order, setOrder] = useState<'asc' | 'desc'>('desc');
-  const limit = 20; // Items per page
+  const limit = 100; // Items per page
 
   useEffect(() => {
     const fetchStorageUrls = async () => {

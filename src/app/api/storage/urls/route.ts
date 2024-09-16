@@ -20,7 +20,14 @@ export async function GET(request: Request) {
         const dateB = b.uploadedAt ? b.uploadedAt.getTime() : 0;
         compare = dateA - dateB;
       } else if (sortBy === 'url') {
-        compare = a.url.localeCompare(b.url);
+        // Extract numeric parts from URLs
+        const getNumber = (url: string) => {
+          const match = url.match(/mtl_archives_image_(\d+)\.jpg$/);
+          return match ? parseInt(match[1], 10) : 0;
+        };
+        const numA = getNumber(a.url);
+        const numB = getNumber(b.url);
+        compare = numA - numB;
       }
       return order === 'desc' ? -compare : compare;
     });
