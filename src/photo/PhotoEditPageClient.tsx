@@ -11,7 +11,7 @@ import { areSimpleObjectsEqual } from '@/utility/object';
 import IconGrSync from '@/site/IconGrSync';
 import { getExifDataAction } from './actions';
 import { Tags } from '@/tag';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function PhotoEditPageClient({
   photo,
@@ -28,7 +28,15 @@ export default function PhotoEditPageClient({
   );
 
   const [pending, setIsPending] = useState(false);
-  const [updatedTitle, setUpdatedTitle] = useState('');
+  const [updatedTitle, setUpdatedTitle] = useState(photo.title || '');
+  const [formData, setFormData] = useState<PhotoFormData>(convertPhotoToFormData(photo));
+
+  useEffect(() => {
+    setFormData(prevData => ({
+      ...prevData,
+      title: updatedTitle,
+    }));
+  }, [updatedTitle]);
 
   const hasExifDataBeenFound = !areSimpleObjectsEqual(
     updatedExifData,
@@ -57,7 +65,7 @@ export default function PhotoEditPageClient({
     >
       <PhotoForm
         type="edit"
-        initialPhotoForm={convertPhotoToFormData(photo)}
+        initialPhotoForm={formData}
         updatedExifData={hasExifDataBeenFound
           ? updatedExifData
           : undefined}
