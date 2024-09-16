@@ -67,11 +67,16 @@ export default function UploadPageClient({
         const dateAttribute = parsedMetadata.attributes?.find(
           (attr) => attr.trait_type === "Date"
         );
+        console.log("Date attribute:", dateAttribute);
+
         let yearTag: string | null = null;
         if (dateAttribute && dateAttribute.value !== undefined) {
+          console.log("Date value:", dateAttribute.value);
           const year = extractYearFromDateValue(dateAttribute.value);
+          console.log("Extracted year:", year);
           if (year) {
             const randomDate = generateRandomDateForYear(year);
+            console.log("Generated random date:", randomDate);
             updatedForm.takenAt = format(
               randomDate,
               "yyyy-MM-dd'T'HH:mm:ssXXX"
@@ -83,6 +88,9 @@ export default function UploadPageClient({
             yearTag = year.toString();
           }
         }
+
+        console.log("Updated form:", updatedForm);
+        console.log("Year tag:", yearTag);
 
         // Combine metadata information into tags
         const tags: string[] = [];
