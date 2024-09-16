@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import StorageUrls from '@/admin/StorageUrls';
 import SiteGrid from '@/components/SiteGrid';
 import JsonDropzone from '@/components/JsonDropzone';
@@ -18,12 +18,16 @@ export default function AdminUploadsPage() {
   const [matchedMetadata, setMatchedMetadata] = useState<Record<string, any>>({});
   const [total, setTotal] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
+  const [sortBy, setSortBy] = useState<'uploadedAt' | 'url'>('uploadedAt');
+  const [order, setOrder] = useState<'asc' | 'desc'>('desc');
   const limit = 20; // Items per page
 
   useEffect(() => {
     const fetchStorageUrls = async () => {
       try {
-        const response = await fetch(`/api/storage/urls?limit=${limit}&offset=${(currentPage - 1) * limit}`);
+        const response = await fetch(
+          `/api/storage/urls?limit=${limit}&offset=${(currentPage - 1) * limit}&sortBy=${sortBy}&order=${order}`
+        );
         const result = await response.json();
         // Convert uploadedAt from string to Date
         const convertedData = result.data.map((url: { url: string; uploadedAt: string }) => ({
@@ -39,7 +43,7 @@ export default function AdminUploadsPage() {
     };
 
     fetchStorageUrls();
-  }, [currentPage]);
+  }, [currentPage, sortBy, order]);
 
   const handleJsonProcessed = (json: any, matchedUrl: string | null) => {
     if (matchedUrl) {
@@ -48,7 +52,7 @@ export default function AdminUploadsPage() {
     }
   };
 
-  const totalPages = Math.ceil(total / limit);
+  const totalPages = useMemo(() => Math.ceil(total / limit), [total, limit]);
 
   return (
     <SiteGrid
@@ -60,6 +64,31 @@ export default function AdminUploadsPage() {
               onJsonProcessed={handleJsonProcessed}
               storageUrls={storageUrls}
             />
+          </div>
+          {/* Sorting Controls */}
+          <div className="mb-4 flex items-center space-x-4">
+            <label>
+              Sort By:
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as 'uploadedAt' | 'url')}
+                className="ml-2 p-2 border rounded"
+              >
+                <option value="uploadedAt">Uploaded At</option>
+                <option value="url">URL</option>
+              </select>
+            </label>
+            <label>
+              Order:
+              <select
+                value={order}
+                onChange={(e) => setOrder(e.target.value as 'asc' | 'desc')}
+                className="ml-2 p-2 border rounded"
+              >
+                <option value="asc">Ascending</option>
+                <option value="desc">Descending</option>
+              </select>
+            </label>
           </div>
           <StorageUrls
             urls={storageUrls}
