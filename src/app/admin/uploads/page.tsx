@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import StorageUrls from "@/admin/StorageUrls";
 import SiteGrid from "@/components/SiteGrid";
 import JsonDropzone from "@/components/JsonDropzone";
@@ -12,26 +13,29 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Pagination } from "@/components/ui/pagination";
 
-// No changes required here since StorageUrl[] aligns with StorageListResponse
 interface StorageUrl {
   url: string;
   uploadedAt: Date;
 }
 
+type SortBy = "uploadedAt" | "url";
+type Order = "asc" | "desc";
+
 export default function AdminUploadsPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   const [storageUrls, setStorageUrls] = useState<StorageUrl[]>([]);
   const [matchedUrls, setMatchedUrls] = useState<string[]>([]);
-  const [matchedMetadata, setMatchedMetadata] = useState<Record<string, any>>(
-    {}
-  );
+  const [matchedMetadata, setMatchedMetadata] = useState<Record<string, any>>({});
   const [total, setTotal] = useState(0);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [sortBy, setSortBy] = useState<"uploadedAt" | "url">("uploadedAt");
-  const [order, setOrder] = useState<"asc" | "desc">("desc");
+
+  const currentPage = Number(searchParams.get("page")) || 1;
+  const sortBy = (searchParams.get("sortBy") as SortBy) || "uploadedAt";
+  const order = (searchParams.get("order") as Order) || "desc";
   const limit = 100; // Items per page
 
   useEffect(() => {
@@ -42,6 +46,9 @@ export default function AdminUploadsPage() {
             (currentPage - 1) * limit
           }&sortBy=${sortBy}&order=${order}`
         );
+        if (!response.ok) {
+          throw new Error("Failed to fetch storage URLs");
+        }
         const result = await response.json();
         const convertedData = result.data.map(
           (url: { url: string; uploadedAt: string }) => ({
@@ -67,7 +74,27 @@ export default function AdminUploadsPage() {
     }
   };
 
-  const totalPages = useMemo(() => Math.ceil(total / limit), [total, limit]);
+  const totalPages = useMemo(() => Math.ceil(total / limit), [total]);
+
+  const updateUrlParams = (params: { [key: string]: string | number }) => {
+    const newSearchParams = new URLSearchParams(searchParams.toString());
+    Object.entries(params).forEach(([key, value]) => {
+      newSearchParams.set(key, value.toString());
+    });
+    router.push(`?${newSearchParams.toString()}`);
+  };
+
+  const handleSortChange = (value: SortBy) => {
+    updateUrlParams({ sortBy: value, page: 1 });
+  };
+
+  const handleOrderChange = (value: Order) => {
+    updateUrlParams({ order: value, page: 1 });
+  };
+
+  const handlePageChange = (page: number) => {
+    updateUrlParams({ page });
+  };
 
   return (
     <SiteGrid
@@ -87,12 +114,7 @@ export default function AdminUploadsPage() {
                 Uploaded Files
               </h2>
               <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
-                <Select
-                  value={sortBy}
-                  onValueChange={(value) =>
-                    setSortBy(value as "uploadedAt" | "url")
-                  }
-                >
+                <Select value={sortBy} onValueChange={handleSortChange}>
                   <SelectTrigger className="w-[180px]">
                     <SelectValue placeholder="Sort by" />
                   </SelectTrigger>
@@ -101,10 +123,7 @@ export default function AdminUploadsPage() {
                     <SelectItem value="url">URL</SelectItem>
                   </SelectContent>
                 </Select>
-                <Select
-                  value={order}
-                  onValueChange={(value) => setOrder(value as "asc" | "desc")}
-                >
+                <Select value={order} onValueChange={handleOrderChange}>
                   <SelectTrigger className="w-[180px]">
                     <SelectValue placeholder="Order" />
                   </SelectTrigger>
@@ -126,7 +145,7 @@ export default function AdminUploadsPage() {
               className="mt-6"
               currentPage={currentPage}
               totalPages={totalPages}
-              onPageChange={setCurrentPage}
+              onPageChange={handlePageChange}
             />
           </Card>
         </div>
