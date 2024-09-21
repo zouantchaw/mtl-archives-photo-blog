@@ -181,13 +181,19 @@ export default function AdminUploadsPage() {
               <h2 className="text-xl font-semibold">Uploaded Files</h2>
               <div className="w-full sm:w-auto flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none">
+                    <Search className="w-4 h-4" />
+                  </div>
                   <Input
                     type="text"
                     placeholder="Search uploads..."
                     className="pl-10 pr-4 py-2 w-full sm:w-[200px]"
                     defaultValue={search}
                     onChange={(e) => handleSearch(e.target.value)}
+                    style={{
+                      paddingLeft: '2.5rem',
+                      textIndent: '0.5rem'
+                    }}
                   />
                 </div>
                 <Select value={sortBy} onValueChange={handleSortChange}>
