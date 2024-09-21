@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
 import { Pagination } from "@/components/ui/pagination";
+import { Skeleton } from "@/components/ui/skeleton";
+import { UploadsSkeleton } from "@/components/ui/uploads-skeleton";
 
 interface StorageUrl {
   url: string;
@@ -24,6 +26,11 @@ interface StorageUrl {
 type SortBy = "uploadedAt" | "url";
 type Order = "asc" | "desc";
 
+const DEFAULT_SORT_BY: SortBy = "uploadedAt";
+const DEFAULT_ORDER: Order = "desc";
+const DEFAULT_PAGE = 1;
+const ITEMS_PER_PAGE = 100;
+
 export default function AdminUploadsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -32,18 +39,42 @@ export default function AdminUploadsPage() {
   const [matchedUrls, setMatchedUrls] = useState<string[]>([]);
   const [matchedMetadata, setMatchedMetadata] = useState<Record<string, any>>({});
   const [total, setTotal] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const currentPage = Number(searchParams.get("page")) || 1;
-  const sortBy = (searchParams.get("sortBy") as SortBy) || "uploadedAt";
-  const order = (searchParams.get("order") as Order) || "desc";
-  const limit = 100; // Items per page
+  const currentPage = Number(searchParams.get("page")) || DEFAULT_PAGE;
+  const sortBy = (searchParams.get("sortBy") as SortBy) || DEFAULT_SORT_BY;
+  const order = (searchParams.get("order") as Order) || DEFAULT_ORDER;
+
+  // Ensure URL params are set on initial load
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams);
+    let hasUpdates = false;
+
+    if (!params.has("page")) {
+      params.set("page", DEFAULT_PAGE.toString());
+      hasUpdates = true;
+    }
+    if (!params.has("sortBy")) {
+      params.set("sortBy", DEFAULT_SORT_BY);
+      hasUpdates = true;
+    }
+    if (!params.has("order")) {
+      params.set("order", DEFAULT_ORDER);
+      hasUpdates = true;
+    }
+
+    if (hasUpdates) {
+      router.replace(`?${params.toString()}`);
+    }
+  }, []);
 
   useEffect(() => {
     const fetchStorageUrls = async () => {
+      setIsLoading(true);
       try {
         const response = await fetch(
-          `/api/storage/urls?limit=${limit}&offset=${
-            (currentPage - 1) * limit
+          `/api/storage/urls?limit=${ITEMS_PER_PAGE}&offset=${
+            (currentPage - 1) * ITEMS_PER_PAGE
           }&sortBy=${sortBy}&order=${order}`
         );
         if (!response.ok) {
@@ -61,6 +92,8 @@ export default function AdminUploadsPage() {
       } catch (error) {
         console.error("Error fetching storage URLs:", error);
         toast.error("Failed to fetch storage URLs");
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -74,7 +107,7 @@ export default function AdminUploadsPage() {
     }
   };
 
-  const totalPages = useMemo(() => Math.ceil(total / limit), [total]);
+  const totalPages = useMemo(() => Math.ceil(total / ITEMS_PER_PAGE), [total]);
 
   const updateUrlParams = (params: { [key: string]: string | number }) => {
     const newSearchParams = new URLSearchParams(searchParams.toString());
@@ -85,15 +118,39 @@ export default function AdminUploadsPage() {
   };
 
   const handleSortChange = (value: SortBy) => {
-    updateUrlParams({ sortBy: value, page: 1 });
+    updateUrlParams({ sortBy: value, page: DEFAULT_PAGE });
   };
 
   const handleOrderChange = (value: Order) => {
-    updateUrlParams({ order: value, page: 1 });
+    updateUrlParams({ order: value, page: DEFAULT_PAGE });
   };
 
   const handlePageChange = (page: number) => {
     updateUrlParams({ page });
+  };
+
+  const renderContent = () => {
+    if (isLoading) {
+      return <UploadsSkeleton />;
+    }
+
+    return (
+      <>
+        <StorageUrls
+          urls={storageUrls}
+          matchedUrls={matchedUrls}
+          matchedMetadata={matchedMetadata}
+        />
+        {totalPages > 1 && (
+          <Pagination
+            className="mt-6"
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
+        )}
+      </>
+    );
   };
 
   return (
@@ -135,18 +192,7 @@ export default function AdminUploadsPage() {
               </div>
             </div>
 
-            <StorageUrls
-              urls={storageUrls}
-              matchedUrls={matchedUrls}
-              matchedMetadata={matchedMetadata}
-            />
-
-            <Pagination
-              className="mt-6"
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={handlePageChange}
-            />
+            {renderContent()}
           </Card>
         </div>
       }
