@@ -15,8 +15,10 @@ import {
 } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
 import { Pagination } from "@/components/ui/pagination";
-import { Skeleton } from "@/components/ui/skeleton";
 import { UploadsSkeleton } from "@/components/ui/uploads-skeleton";
+import { Search } from "lucide-react";
+import { useDebouncedCallback } from "use-debounce";
+import { Input } from "@/components/ui/input";
 
 interface StorageUrl {
   url: string;
@@ -44,6 +46,7 @@ export default function AdminUploadsPage() {
   const currentPage = Number(searchParams.get("page")) || DEFAULT_PAGE;
   const sortBy = (searchParams.get("sortBy") as SortBy) || DEFAULT_SORT_BY;
   const order = (searchParams.get("order") as Order) || DEFAULT_ORDER;
+  const search = searchParams.get("search") || "";
 
   // Ensure URL params are set on initial load
   useEffect(() => {
@@ -75,7 +78,7 @@ export default function AdminUploadsPage() {
         const response = await fetch(
           `/api/storage/urls?limit=${ITEMS_PER_PAGE}&offset=${
             (currentPage - 1) * ITEMS_PER_PAGE
-          }&sortBy=${sortBy}&order=${order}`
+          }&sortBy=${sortBy}&order=${order}&search=${encodeURIComponent(search)}`
         );
         if (!response.ok) {
           throw new Error("Failed to fetch storage URLs");
@@ -98,7 +101,7 @@ export default function AdminUploadsPage() {
     };
 
     fetchStorageUrls();
-  }, [currentPage, sortBy, order]);
+  }, [currentPage, sortBy, order, search]);
 
   const handleJsonProcessed = (json: any, matchedUrl: string | null) => {
     if (matchedUrl) {
@@ -112,7 +115,11 @@ export default function AdminUploadsPage() {
   const updateUrlParams = (params: { [key: string]: string | number }) => {
     const newSearchParams = new URLSearchParams(searchParams.toString());
     Object.entries(params).forEach(([key, value]) => {
-      newSearchParams.set(key, value.toString());
+      if (value === "") {
+        newSearchParams.delete(key);
+      } else {
+        newSearchParams.set(key, value.toString());
+      }
     });
     router.push(`?${newSearchParams.toString()}`);
   };
@@ -128,6 +135,10 @@ export default function AdminUploadsPage() {
   const handlePageChange = (page: number) => {
     updateUrlParams({ page });
   };
+
+  const handleSearch = useDebouncedCallback((value: string) => {
+    updateUrlParams({ search: value, page: DEFAULT_PAGE });
+  }, 300);
 
   const renderContent = () => {
     if (isLoading) {
@@ -166,13 +177,21 @@ export default function AdminUploadsPage() {
           </Card>
 
           <Card className="p-6">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
-              <h2 className="text-xl font-semibold mb-4 sm:mb-0">
-                Uploaded Files
-              </h2>
-              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
+            <div className="flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4 justify-between items-start sm:items-center mb-6">
+              <h2 className="text-xl font-semibold">Uploaded Files</h2>
+              <div className="w-full sm:w-auto flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <Input
+                    type="text"
+                    placeholder="Search uploads..."
+                    className="pl-10 pr-4 py-2 w-full sm:w-[200px]"
+                    defaultValue={search}
+                    onChange={(e) => handleSearch(e.target.value)}
+                  />
+                </div>
                 <Select value={sortBy} onValueChange={handleSortChange}>
-                  <SelectTrigger className="w-[180px]">
+                  <SelectTrigger className="w-full sm:w-[180px]">
                     <SelectValue placeholder="Sort by" />
                   </SelectTrigger>
                   <SelectContent>
@@ -181,7 +200,7 @@ export default function AdminUploadsPage() {
                   </SelectContent>
                 </Select>
                 <Select value={order} onValueChange={handleOrderChange}>
-                  <SelectTrigger className="w-[180px]">
+                  <SelectTrigger className="w-full sm:w-[180px]">
                     <SelectValue placeholder="Order" />
                   </SelectTrigger>
                   <SelectContent>

@@ -4,11 +4,12 @@ export function UploadsSkeleton() {
   return (
     <div className="space-y-6">
       {/* Header skeleton */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4 justify-between items-start sm:items-center">
         <Skeleton className="h-8 w-40" />
-        <div className="flex space-x-2">
-          <Skeleton className="h-10 w-[180px]" />
-          <Skeleton className="h-10 w-[180px]" />
+        <div className="w-full sm:w-auto flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
+          <Skeleton className="h-10 w-full sm:w-[200px]" />
+          <Skeleton className="h-10 w-full sm:w-[180px]" />
+          <Skeleton className="h-10 w-full sm:w-[180px]" />
         </div>
       </div>
 

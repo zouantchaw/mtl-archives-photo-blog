@@ -8,8 +8,18 @@ export async function GET(request: Request) {
   
   const sortBy = searchParams.get('sortBy') as 'uploadedAt' | 'url' | null;
   const order = searchParams.get('order') as 'asc' | 'desc' | null;
+  const search = searchParams.get('search') || '';
 
-  const storageUrls = await getStorageUploadUrlsNoStore();
+  let storageUrls = await getStorageUploadUrlsNoStore();
+
+  // Apply search filter
+  if (search) {
+    const searchLower = search.toLowerCase();
+    storageUrls = storageUrls.filter(url => 
+      url.url.toLowerCase().includes(searchLower) ||
+      (url.uploadedAt && url.uploadedAt.toISOString().toLowerCase().includes(searchLower))
+    );
+  }
 
   // Sort storageUrls based on sortBy and order
   if (sortBy) {
@@ -33,8 +43,13 @@ export async function GET(request: Request) {
     });
   }
 
-  const paginatedUrls = storageUrls.slice(offset, offset + limit);
   const total = storageUrls.length;
+  const paginatedUrls = storageUrls.slice(offset, offset + limit);
 
-  return NextResponse.json({ data: paginatedUrls, total });
+  return NextResponse.json({ 
+    data: paginatedUrls, 
+    total,
+    page: Math.floor(offset / limit) + 1,
+    totalPages: Math.ceil(total / limit)
+  });
 }
