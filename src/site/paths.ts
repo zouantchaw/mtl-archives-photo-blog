@@ -11,6 +11,7 @@ import { FilmSimulation } from '@/simulation';
 export const PATH_ROOT      = '/';
 export const PATH_GRID      = '/grid';
 export const PATH_ADMIN     = '/admin';
+export const PATH_MAP       = '/map';
 export const PATH_API       = '/api';
 export const PATH_SIGN_IN   = '/sign-in';
 export const PATH_OG        = '/og';
@@ -236,6 +237,9 @@ export const isPathGrid = (pathname?: string) =>
 
 export const isPathSignIn = (pathname?: string) =>
   checkPathPrefix(pathname, PATH_SIGN_IN);
+
+export const isPathMap = (pathname?: string) =>
+  checkPathPrefix(pathname, PATH_MAP);
 
 export const isPathAdmin = (pathname?: string) =>
   checkPathPrefix(pathname, PATH_ADMIN);

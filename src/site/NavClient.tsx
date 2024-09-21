@@ -8,8 +8,10 @@ import { SITE_DOMAIN_OR_TITLE } from '@/site/config';
 import ViewSwitcher, { SwitcherSelection } from '@/site/ViewSwitcher';
 import {
   PATH_ROOT,
+  PATH_MAP,
   isPathAdmin,
   isPathGrid,
+  isPathMap,
   isPathProtected,
   isPathSignIn,
 } from '@/site/paths';
@@ -39,6 +41,8 @@ export default function NavClient({
       return 'full-frame';
     } else if (isPathGrid(pathname)) {
       return 'grid';
+    } else if (isPathMap(pathname)) {
+      return 'map';
     } else if (isPathProtected(pathname)) {
       return 'admin';
     }
