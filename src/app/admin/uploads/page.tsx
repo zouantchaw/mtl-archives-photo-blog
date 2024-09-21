@@ -31,7 +31,7 @@ type Order = "asc" | "desc";
 const DEFAULT_SORT_BY: SortBy = "uploadedAt";
 const DEFAULT_ORDER: Order = "desc";
 const DEFAULT_PAGE = 1;
-const ITEMS_PER_PAGE = 100;
+const ITEMS_PER_PAGE = 200;
 
 export default function AdminUploadsPage() {
   const router = useRouter();

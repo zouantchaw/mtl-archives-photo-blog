@@ -1,4 +1,4 @@
-import { getStorageUploadUrlsNoStore } from '@/services/storage/cache';
+import { getStorageUploadUrlsPaginated } from '@/services/storage/cache';
 import { NextResponse } from 'next/server';
 
 export async function GET(request: Request) {
@@ -10,7 +10,8 @@ export async function GET(request: Request) {
   const order = searchParams.get('order') as 'asc' | 'desc' | null;
   const search = searchParams.get('search') || '';
 
-  let storageUrls = await getStorageUploadUrlsNoStore();
+  let { data: storageUrls, total } = await getStorageUploadUrlsPaginated(limit, offset);
+  console.log('total', total);
 
   // Apply search filter
   if (search) {
@@ -19,6 +20,7 @@ export async function GET(request: Request) {
       url.url.toLowerCase().includes(searchLower) ||
       (url.uploadedAt && url.uploadedAt.toISOString().toLowerCase().includes(searchLower))
     );
+    total = storageUrls.length;
   }
 
   // Sort storageUrls based on sortBy and order
@@ -26,28 +28,38 @@ export async function GET(request: Request) {
     storageUrls.sort((a, b) => {
       let compare = 0;
       if (sortBy === 'uploadedAt') {
-        const dateA = a.uploadedAt ? a.uploadedAt.getTime() : 0;
-        const dateB = b.uploadedAt ? b.uploadedAt.getTime() : 0;
+        const dateA = a.uploadedAt ? new Date(a.uploadedAt).getTime() : 0;
+        const dateB = b.uploadedAt ? new Date(b.uploadedAt).getTime() : 0;
         compare = dateA - dateB;
       } else if (sortBy === 'url') {
-        // Extract numeric parts from URLs
-        const getNumber = (url: string) => {
-          const match = url.match(/mtl_archives_image_(\d+)\.jpg$/);
-          return match ? parseInt(match[1], 10) : 0;
+        const getNumberAndPrefix = (url: string) => {
+          const match = url.match(/^(.*?)(\d+)(?:\.(jpg|jpeg))$/i);
+          if (match) {
+            return {
+              prefix: match[1].toLowerCase(),
+              number: parseInt(match[2], 10),
+              suffix: match[3].toLowerCase()
+            };
+          }
+          return { prefix: url.toLowerCase(), number: Infinity, suffix: '' };
         };
-        const numA = getNumber(a.url);
-        const numB = getNumber(b.url);
-        compare = numA - numB;
+        const { prefix: prefixA, number: numA, suffix: suffixA } = getNumberAndPrefix(a.url);
+        const { prefix: prefixB, number: numB, suffix: suffixB } = getNumberAndPrefix(b.url);
+
+        compare = prefixA.localeCompare(prefixB);
+        if (compare === 0) {
+          compare = numA - numB;
+          if (compare === 0) {
+            compare = suffixA.localeCompare(suffixB);
+          }
+        }
       }
       return order === 'desc' ? -compare : compare;
     });
   }
 
-  const total = storageUrls.length;
-  const paginatedUrls = storageUrls.slice(offset, offset + limit);
-
   return NextResponse.json({ 
-    data: paginatedUrls, 
+    data: storageUrls, 
     total,
     page: Math.floor(offset / limit) + 1,
     totalPages: Math.ceil(total / limit)
