@@ -1,76 +1,103 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-import L from 'leaflet';
+import { useState, useCallback } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
 
-export default function MapClient() {
-  const mapRef = useRef<L.Map | null>(null);
-  const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
-  const [accuracy, setAccuracy] = useState<number | null>(null);
+// Fix for default marker icon
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: '/images/marker-icon-2x.png',
+  iconUrl: '/images/marker-icon.png',
+  shadowUrl: '/images/marker-shadow.png',
+});
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      if (!mapRef.current) {
-        mapRef.current = L.map('map').setView([0, 0], 2);
+interface Site {
+  name: string;
+  position: [number, number];
+  description: string;
+}
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-        }).addTo(mapRef.current);
-      }
+const montrealSites: Site[] = [
+  { name: "Mount Royal", position: [45.5048, -73.5874], description: "Iconic hill in the heart of Montreal" },
+  { name: "Old Montreal", position: [45.5079, -73.5540], description: "Historic neighborhood with cobblestone streets" },
+  { name: "Notre-Dame Basilica", position: [45.5046, -73.5566], description: "Gothic Revival church with stunning interiors" },
+  { name: "Jean-Talon Market", position: [45.5364, -73.6157], description: "Vibrant open-air market" },
+  { name: "Montreal Botanical Garden", position: [45.5592, -73.5628], description: "Extensive gardens and greenhouses" },
+  { name: "Olympic Stadium", position: [45.5579, -73.5515], description: "Iconic stadium from the 1976 Olympics" },
+  { name: "Parc La Fontaine", position: [45.5225, -73.5695], description: "Beautiful urban park with a lake" },
+  { name: "St. Joseph's Oratory", position: [45.4922, -73.6177], description: "Majestic basilica on Mount Royal" },
+  { name: "Plateau Mont-Royal", position: [45.5227, -73.5816], description: "Trendy neighborhood with colorful houses" },
+  { name: "Montreal Museum of Fine Arts", position: [45.4986, -73.5795], description: "Renowned art museum" },
+  { name: "YUL Airport", position: [45.4707, -73.7407], description: "Montreal-Pierre Elliott Trudeau International Airport" },
+];
 
-      if ('geolocation' in navigator) {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            const { latitude, longitude, accuracy } = position.coords;
-            setUserLocation([latitude, longitude]);
-            setAccuracy(accuracy);
+function ChangeView({ center, zoom }: { center: L.LatLngExpression; zoom: number }) {
+  const map = useMap();
+  map.setView(center, zoom);
+  return null;
+}
 
-            if (mapRef.current) {
-              mapRef.current.setView([latitude, longitude], 18);
-              
-              L.marker([latitude, longitude]).addTo(mapRef.current)
-                .bindPopup('You are here')
-                .openPopup();
+const MapClient = () => {
+  const [activeMarker, setActiveMarker] = useState<number | null>(null);
+  const [mapCenter, setMapCenter] = useState<L.LatLngExpression>([45.5017, -73.5673]);
+  const [mapZoom, setMapZoom] = useState(11);
 
-              L.circle([latitude, longitude], {
-                color: 'blue',
-                fillColor: '#3388ff',
-                fillOpacity: 0.2,
-                radius: accuracy
-              }).addTo(mapRef.current);
-            }
-          },
-          (error) => {
-            console.error('Error getting location:', error);
-          },
-          {
-            enableHighAccuracy: true,
-            timeout: 10000,
-            maximumAge: 0
-          }
-        );
-      }
-    }
-
-    return () => {
-      mapRef.current?.remove();
-      mapRef.current = null;
-    };
+  const handleSiteClick = useCallback((index: number) => {
+    setActiveMarker(index);
+    setMapCenter(montrealSites[index].position);
+    setMapZoom(14);
   }, []);
 
   return (
-    <div id="map" className="w-full h-screen">
-      {!userLocation && (
-        <div className="absolute top-0 left-0 right-0 z-[1000] bg-yellow-100 p-2 text-center">
-          Locating you... This may take a moment for higher accuracy.
-        </div>
-      )}
-      {userLocation && accuracy && (
-        <div className="absolute bottom-0 left-0 right-0 z-[1000] bg-white p-2 text-center">
-          Location accuracy: {accuracy.toFixed(2)} meters
-        </div>
-      )}
-    </div>
+    <>
+      <div className="w-full md:w-1/3 h-48 md:h-full overflow-y-auto p-4 bg-white dark:bg-gray-800">
+        <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-white">Montreal Sites</h2>
+        <ul>
+          {montrealSites.map((site, index) => (
+            <li 
+              key={index} 
+              className="mb-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 p-2 rounded"
+              onClick={() => handleSiteClick(index)}
+            >
+              <h3 className="font-semibold text-gray-800 dark:text-white">{site.name}</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-300">{site.description}</p>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <div className="w-full md:w-2/3 h-[calc(100vh-6rem-12rem)] md:h-full">
+        <MapContainer
+          center={mapCenter}
+          zoom={mapZoom}
+          className="w-full h-full"
+        >
+          <ChangeView center={mapCenter} zoom={mapZoom} />
+          <TileLayer
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          />
+          {montrealSites.map((site, index) => (
+            <Marker
+              key={index}
+              position={site.position}
+              eventHandlers={{
+                click: () => handleSiteClick(index),
+              }}
+            >
+              <Popup>
+                <div className="text-sm">
+                  <h3 className="font-bold mb-1">{site.name}</h3>
+                  <p>{site.description}</p>
+                </div>
+              </Popup>
+            </Marker>
+          ))}
+        </MapContainer>
+      </div>
+    </>
   );
-}
+};
+
+export default MapClient;
