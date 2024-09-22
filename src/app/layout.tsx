@@ -15,6 +15,7 @@ import NavClient from "@/site/NavClient";
 import CommandK from "@/site/CommandK";
 import { ThemeProvider } from "next-themes";
 import Script from "next/script"; // Import Script from next/script
+import 'leaflet/dist/leaflet.css';
 
 import "../site/globals.css";
 import "../site/sonner.css";
