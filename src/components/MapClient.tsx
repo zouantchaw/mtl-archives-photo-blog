@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { useState, useCallback } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
@@ -33,36 +33,70 @@ const montrealSites: Site[] = [
   { name: "YUL Airport", position: [45.4707, -73.7407], description: "Montreal-Pierre Elliott Trudeau International Airport" },
 ];
 
+function ChangeView({ center, zoom }: { center: L.LatLngExpression; zoom: number }) {
+  const map = useMap();
+  map.setView(center, zoom);
+  return null;
+}
+
 const MapClient = () => {
   const [activeMarker, setActiveMarker] = useState<number | null>(null);
+  const [mapCenter, setMapCenter] = useState<L.LatLngExpression>([45.5017, -73.5673]);
+  const [mapZoom, setMapZoom] = useState(11);
+
+  const handleSiteClick = useCallback((index: number) => {
+    setActiveMarker(index);
+    setMapCenter(montrealSites[index].position);
+    setMapZoom(14);
+  }, []);
 
   return (
-    <MapContainer
-      center={[45.5017, -73.5673]}
-      zoom={11}
-      className="w-full h-full rounded-lg"
-    >
-      <TileLayer
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-      />
-      {montrealSites.map((site, index) => (
-        <Marker
-          key={index}
-          position={site.position}
-          eventHandlers={{
-            click: () => setActiveMarker(index),
-          }}
+    <>
+      <div className="w-full md:w-1/3 h-48 md:h-full overflow-y-auto p-4 bg-white dark:bg-gray-800">
+        <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-white">Montreal Sites</h2>
+        <ul>
+          {montrealSites.map((site, index) => (
+            <li 
+              key={index} 
+              className="mb-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 p-2 rounded"
+              onClick={() => handleSiteClick(index)}
+            >
+              <h3 className="font-semibold text-gray-800 dark:text-white">{site.name}</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-300">{site.description}</p>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <div className="w-full md:w-2/3 h-[calc(100vh-6rem-12rem)] md:h-full">
+        <MapContainer
+          center={mapCenter}
+          zoom={mapZoom}
+          className="w-full h-full"
         >
-          <Popup>
-            <div className="text-sm">
-              <h3 className="font-bold mb-1">{site.name}</h3>
-              <p>{site.description}</p>
-            </div>
-          </Popup>
-        </Marker>
-      ))}
-    </MapContainer>
+          <ChangeView center={mapCenter} zoom={mapZoom} />
+          <TileLayer
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          />
+          {montrealSites.map((site, index) => (
+            <Marker
+              key={index}
+              position={site.position}
+              eventHandlers={{
+                click: () => handleSiteClick(index),
+              }}
+            >
+              <Popup>
+                <div className="text-sm">
+                  <h3 className="font-bold mb-1">{site.name}</h3>
+                  <p>{site.description}</p>
+                </div>
+              </Popup>
+            </Marker>
+          ))}
+        </MapContainer>
+      </div>
+    </>
   );
 };
 

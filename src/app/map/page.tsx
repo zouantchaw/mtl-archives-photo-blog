@@ -8,7 +8,7 @@ const MapClient = dynamic(() => import('@/components/MapClient'), {
 
 export default function MapPage() {
   return (
-    <div className="w-full h-[calc(100vh-6rem)]">
+    <div className="w-full h-[calc(100vh-6rem)] flex flex-col md:flex-row">
       <Suspense fallback={<p className="text-center py-4">Loading map...</p>}>
         <MapClient />
       </Suspense>
