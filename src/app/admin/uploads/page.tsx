@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import StorageUrls from "@/admin/StorageUrls";
 import SiteGrid from "@/components/SiteGrid";
 import JsonDropzone from "@/components/JsonDropzone";
+import { UploadsSkeleton } from "@/components/ui/uploads-skeleton";
 import { toast } from "sonner";
 import {
   Select,
@@ -15,10 +16,10 @@ import {
 } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
 import { Pagination } from "@/components/ui/pagination";
-import { UploadsSkeleton } from "@/components/ui/uploads-skeleton";
 import { Search } from "lucide-react";
 import { useDebouncedCallback } from "use-debounce";
 import { Input } from "@/components/ui/input";
+import { useState, useEffect, useMemo } from "react";
 
 interface StorageUrl {
   url: string;
@@ -33,16 +34,16 @@ const DEFAULT_ORDER: Order = "desc";
 const DEFAULT_PAGE = 1;
 const ITEMS_PER_PAGE = 200;
 
-export default function AdminUploadsPage() {
-  const router = useRouter();
+function AdminUploadsContent() {
   const searchParams = useSearchParams();
-
   const [storageUrls, setStorageUrls] = useState<StorageUrl[]>([]);
   const [matchedUrls, setMatchedUrls] = useState<string[]>([]);
-  const [matchedMetadata, setMatchedMetadata] = useState<Record<string, any>>({});
+  const [matchedMetadata, setMatchedMetadata] = useState<Record<string, any>>(
+    {}
+  );
   const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
-
+  const router = useRouter();
   const currentPage = Number(searchParams.get("page")) || DEFAULT_PAGE;
   const sortBy = (searchParams.get("sortBy") as SortBy) || DEFAULT_SORT_BY;
   const order = (searchParams.get("order") as Order) || DEFAULT_ORDER;
@@ -78,7 +79,9 @@ export default function AdminUploadsPage() {
         const response = await fetch(
           `/api/storage/urls?limit=${ITEMS_PER_PAGE}&offset=${
             (currentPage - 1) * ITEMS_PER_PAGE
-          }&sortBy=${sortBy}&order=${order}&search=${encodeURIComponent(search)}`
+          }&sortBy=${sortBy}&order=${order}&search=${encodeURIComponent(
+            search
+          )}`
         );
         if (!response.ok) {
           throw new Error("Failed to fetch storage URLs");
@@ -191,8 +194,8 @@ export default function AdminUploadsPage() {
                     defaultValue={search}
                     onChange={(e) => handleSearch(e.target.value)}
                     style={{
-                      paddingLeft: '2.5rem',
-                      textIndent: '0.5rem'
+                      paddingLeft: "2.5rem",
+                      textIndent: "0.5rem",
                     }}
                   />
                 </div>
@@ -222,5 +225,13 @@ export default function AdminUploadsPage() {
         </div>
       }
     />
+  );
+}
+
+export default function AdminUploadsPage() {
+  return (
+    <Suspense fallback={<UploadsSkeleton />}>
+      <AdminUploadsContent />
+    </Suspense>
   );
 }
