@@ -19,8 +19,6 @@ import { UploadsSkeleton } from "@/components/ui/uploads-skeleton";
 import { Search } from "lucide-react";
 import { useDebouncedCallback } from "use-debounce";
 import { Input } from "@/components/ui/input";
-import { Suspense } from 'react';
-import UploadsContent from './UploadsContent';
 
 interface StorageUrl {
   url: string;
