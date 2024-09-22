@@ -68,7 +68,7 @@ export default function ViewSwitcher({
             transition={{ duration: 0.2 }}
             className="ml-1 flex"
           >
-            <Switcher type="borderless">
+            <Switcher type="borderless"> 
               <SwitcherItem
                 icon={
                   <div className="p-2 hover:bg-gray-100 rounded-md transition-colors">
