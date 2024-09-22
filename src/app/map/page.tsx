@@ -1,4 +1,5 @@
 import dynamic from 'next/dynamic';
+import { Suspense } from 'react';
 
 const MapClient = dynamic(() => import('@/components/MapClient'), {
   ssr: false,
@@ -7,8 +8,10 @@ const MapClient = dynamic(() => import('@/components/MapClient'), {
 
 export default function MapPage() {
   return (
-    <div>
-      <MapClient />
+    <div className="w-full h-screen">
+      <Suspense fallback={<p>Loading map...</p>}>
+        <MapClient />
+      </Suspense>
     </div>
   );
 }
