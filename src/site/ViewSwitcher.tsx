@@ -2,12 +2,11 @@ import Switcher from "@/components/Switcher";
 import SwitcherItem from "@/components/SwitcherItem";
 import IconFullFrame from "@/site/IconFullFrame";
 import IconGrid from "@/site/IconGrid";
+import IconMap from "@/site/IconMap";
+import IconSearch from "@/site/IconSearch";
 import { PATH_ADMIN_PHOTOS, PATH_GRID, PATH_MAP } from "@/site/paths";
 import { BiLockAlt } from "react-icons/bi";
 import { useAppState } from "@/state";
-import IconSearch from "./IconSearch";
-import IconMap from "./IconMap";
-import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { Binoculars } from "lucide-react";
 import { MapResetButton } from "@/components/MapResetButton";
@@ -19,17 +18,18 @@ export type SwitcherSelection =
   | "sets"
   | "admin";
 
+interface ViewSwitcherProps {
+  currentSelection?: SwitcherSelection;
+  showAdmin?: boolean;
+}
+
 export default function ViewSwitcher({
   currentSelection,
   showAdmin,
-}: {
-  currentSelection?: SwitcherSelection;
-  showAdmin?: boolean;
-}) {
+}: ViewSwitcherProps) {
   const { setIsCommandKOpen } = useAppState();
-  const pathname = usePathname();
 
-  const isMapRoute = pathname === PATH_MAP;
+  const isMapRoute = currentSelection === "map";
 
   return (
     <div className="flex items-center gap-1 sm:gap-2">
