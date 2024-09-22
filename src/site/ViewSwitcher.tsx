@@ -10,6 +10,7 @@ import IconMap from "./IconMap";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { RotateCcw, Binoculars } from "lucide-react";
+import { MapStateResetButton } from "@/components/MapStateResetButton";
 
 export type SwitcherSelection =
   | "full-frame"
@@ -68,19 +69,8 @@ export default function ViewSwitcher({
             transition={{ duration: 0.2 }}
             className="ml-1 flex"
           >
-            <Switcher type="borderless"> 
-              <SwitcherItem
-                icon={
-                  <div className="p-2 hover:bg-gray-100 rounded-md transition-colors">
-                    <RotateCcw size={20} className="text-gray-600" />
-                  </div>
-                }
-                onClick={() => {
-                  // TODO: Implement map reset functionality
-                  console.log("Map reset clicked");
-                }}
-                noPadding
-              />
+            <Switcher type="borderless">
+              <MapStateResetButton />
               <SwitcherItem
                 icon={
                   <div className="p-2 hover:bg-gray-100 rounded-md transition-colors">
