@@ -1,10 +1,6 @@
 import dynamic from "next/dynamic";
 import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  PaginationParams,
-  getPaginationForSearchParams,
-} from "@/site/pagination";
 
 const MapClient = dynamic(() => import("@/components/MapClient"), {
   ssr: false,
