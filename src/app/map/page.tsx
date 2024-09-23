@@ -1,10 +1,10 @@
-import dynamic from "next/dynamic";
-import { Suspense } from "react";
+import dynamic from 'next/dynamic';
+import { Suspense } from 'react';
 import { Skeleton } from "@/components/ui/skeleton";
 
-const MapClient = dynamic(() => import("@/components/MapClient"), {
+const MapClient = dynamic(() => import('@/components/MapClient'), {
   ssr: false,
-  loading: () => <MapSkeleton />,
+  loading: () => <MapSkeleton />
 });
 
 function MapSkeleton() {
