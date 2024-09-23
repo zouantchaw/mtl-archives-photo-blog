@@ -76,6 +76,36 @@ const montrealSites: Site[] = [
     position: [45.4707, -73.7407],
     description: "Montreal-Pierre Elliott Trudeau International Airport",
   },
+  {
+    name: "Maison Frederick Thomas Judah",
+    position: [45.4986, -73.5795],
+    description: "Historic mansion in Montreal's Golden Square Mile",
+  },
+  {
+    name: "Square d'Youville",
+    position: [45.5025, -73.5539],
+    description: "Historic square in Old Montreal",
+  },
+  {
+    name: "The Laurentian Hotel",
+    position: [45.5017, -73.5673],
+    description: "Historic hotel in downtown Montreal",
+  },
+  {
+    name: "Rue Saint-Antoine",
+    position: [45.5066, -73.5594],
+    description: "Major street in Old Montreal",
+  },
+  {
+    name: "Knox Crescent Presbyterian Church",
+    position: [45.4896, -73.5847],
+    description: "Historic Presbyterian church in Montreal",
+  },
+  {
+    name: "St. George's Anglican Church",
+    position: [45.4989, -73.5748],
+    description: "Historic Anglican church in downtown Montreal",
+  },
 ];
 
 function ChangeView({
