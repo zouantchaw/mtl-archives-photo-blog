@@ -72,6 +72,9 @@ export default function ViewSwitcher({
             className="ml-1 flex"
           >
             <Switcher type="borderless">
+              <Suspense fallback={<Skeleton className="w-6 h-6" />}>
+                <MapResetButton />
+              </Suspense>
               <SwitcherItem
                 icon={
                   <div className="p-2 hover:bg-gray-100 rounded-md transition-colors">
@@ -84,9 +87,6 @@ export default function ViewSwitcher({
                 }}
                 noPadding
               />
-              <Suspense fallback={<Skeleton className="w-6 h-6" />}>
-                <MapResetButton />
-              </Suspense>
             </Switcher>
           </motion.div>
         )}
