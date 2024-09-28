@@ -283,6 +283,7 @@ export type GetPhotosOptions = {
   takenBefore?: Date
   takenAfterInclusive?: Date
   includeHidden?: boolean
+  includeLocation?: boolean 
 }
 
 const safelyQueryPhotos = async <T>(callback: () => Promise<T>): Promise<T> => {
@@ -325,6 +326,7 @@ export const getPhotos = async (options: GetPhotosOptions = {}) => {
     takenBefore,
     takenAfterInclusive,
     includeHidden,
+    includeLocation, 
   } = options;
 
   let sql = ['SELECT * FROM photos'];
@@ -361,6 +363,9 @@ export const getPhotos = async (options: GetPhotosOptions = {}) => {
   if (simulation) {
     wheres.push(`film_simulation=$${valueIndex++}`);
     values.push(simulation);
+  }
+  if (includeLocation) {
+    wheres.push('latitude IS NOT NULL AND longitude IS NOT NULL');
   }
   if (wheres.length > 0) {
     sql.push(`WHERE ${wheres.join(' AND ')}`);
