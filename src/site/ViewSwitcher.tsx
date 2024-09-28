@@ -82,7 +82,6 @@ export default function ViewSwitcher({
                   </div>
                 }
                 onClick={() => {
-                  // TODO: Implement binoculars functionality
                   console.log("Binoculars clicked");
                 }}
                 noPadding
