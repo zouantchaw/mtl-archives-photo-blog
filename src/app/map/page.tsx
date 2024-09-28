@@ -1,9 +1,6 @@
 import dynamic from 'next/dynamic';
-import { Suspense } from 'react';
-import { Skeleton } from '@/components/ui/skeleton';
 import { getPhotos } from '@/services/vercel-postgres';
-import { Photo } from '@/photo';
-
+import { Skeleton } from '@/components/ui/skeleton';
 const MapClient = dynamic(() => import('@/components/MapClient'), {
   ssr: false,
   loading: () => <MapSkeleton />,
@@ -26,9 +23,7 @@ export default async function MapPage() {
 
   return (
     <div className="w-full h-[calc(100vh-6rem)] flex flex-col md:flex-row">
-      <Suspense fallback={<MapSkeleton />}>
-        <MapClient photos={photos} />
-      </Suspense>
+      <MapClient photos={photos} />
     </div>
   );
 }

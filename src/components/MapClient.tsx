@@ -37,7 +37,7 @@ const MapClient = ({ photos }: MapClientProps) => {
     [photos, setMapState]
   );
 
-  const MapUpdater = () => {
+  function MapUpdater() {
     const map = useMap();
 
     useEffect(() => {
@@ -45,7 +45,7 @@ const MapClient = ({ photos }: MapClientProps) => {
     }, [lat, lng, zoom, map]);
 
     return null;
-  };
+  }
 
   return (
     <>
@@ -74,7 +74,7 @@ const MapClient = ({ photos }: MapClientProps) => {
           <MapUpdater />
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            attribution="&copy; OpenStreetMap contributors"
           />
           {photos.map((photo, index) => {
             if (photo.latitude && photo.longitude) {
